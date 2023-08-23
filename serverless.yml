@@ -1,0 +1,51 @@
+service: test-sample-python-serverless
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.8
+  # Tempo que necessitamos para que esse código seja executado.
+  # lembrando que 900s é o tempo máximo de processamento possível por um código Lambda.
+  timeout: 900
+  environment:
+    # Aqui se adiciona normalmente qualquer valor a uma variável de ambiente para 
+    # que o código possa puxar de acordo com a necessidade.
+    # Bem como, por questão de segurança não está diretamente setado no código.
+    dataBase_adress: dataBasePostgresql
+    host_adress: us-east-1.rds.amazonaws.com
+    user_database: masterUser
+    user_password: admroot
+    api_key_internal: hash-1g25-ddfggew-d6644803af
+    api_key_external: sZWFyaW9fbm9tXR0eXAvIjeyJidZUNvbXB
+  vpc:
+    #Para ter conexões externas da sua VPC interna, é necessário adicionar o grupo de segurança
+    # bem como adicionar as subnets específicas pra que você possa acessar outros componentes do
+    # seu sistema interno da AWS. Como por exemplo, EC2, outras lambdas em outras regiões, RDS etc...
+    securityGroupIds:
+      - sg-08a55d8w171132
+    subnetIds:
+      - subnet-ds5x3aa56
+      - subnet-98a06bssd2
+      - subnet-bb59e4704d
+      - subnet-de5d8f558s
+
+functions:
+  rateHandler:
+    handler: handler.run
+    events:
+    # aqui podemos determinar com que frequência o código irá rodar
+      - schedule: cron(0 10 ? * * *)
+
+# Esta parte é necessária para caso você utilize bibliotecas externas
+# há outras abordagens para que seja utilizada e reduza o tamanho do serverless
+# na aws, porém em geral dá pra adicionar as bibliotecas tranquilamente.
+plugins:
+  - serverless-python-requirements
+
+# Para subir essa lambda na AWS, basta ter configurado sua key e secret da aws
+# no painel do serverless no seu terminal e digitar:
+#### sls deploy
+# ou caso queira definir ambientes de execução
+#### sls deploy --stage=prod
+#### sls deploy --stage=dev
